@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🛎️ Customer Support Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 420px;
+      background-color: #1f1f1f;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 15px;
+      background-color: #2a2a2a;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      border-bottom: 1px solid #333;
+    }
+
+    .chat-box {
+      flex: 1;
+      height: 400px;
+      overflow-y: auto;
+      padding: 20px;
+      background-color: #1c1c1c;
+    }
+
+    .message {
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      border-radius: 20px;
+      max-width: 80%;
+      line-height: 1.5;
+      word-wrap: break-word;
+      display: inline-block;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .customer {
+      background-color: #2e2e2e;
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot {
+      background-color: #3a3a3a;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+      font-style: italic;
+    }
+
+    .input-container {
+      display: flex;
+      padding: 15px;
+      border-top: 1px solid #333;
+      background-color: #1f1f1f;
+    }
+
+    .input-container input {
+      flex: 1;
+      padding: 12px;
+      background-color: #333;
+      border: none;
+      border-radius: 20px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .input-container button {
+      margin-left: 10px;
+      padding: 12px 18px;
+      background-color: #ffffff;
+      border: none;
+      border-radius: 20px;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .input-container button:hover {
+      background-color: #cccccc;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">🤖 AI-Chatbot</div>
+  <div class="chat-box" id="chatBox"></div>
+  <div class="input-container">
+    <input type="text" id="userInput" placeholder="💬 Ask your question..." onkeyup="checkEnter(event)" />
+    <button onclick="sendMessage()">📤</button>
+  </div>
+</div>
+
+<script>
+  function appendMessage(message, sender) {
+    const chatBox = document.getElementById("chatBox");
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message", sender.toLowerCase());
+
+    if (sender === "customer") {
+      message = "🧑‍💬 " + message;
+    } else {
+      message = "🤖 " + message;
+    }
+
+    messageElement.textContent = message;
+    chatBox.appendChild(messageElement);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function sendMessage() {
+    const userInput = document.getElementById("userInput").value;
+    if (userInput.trim() === "") return;
+
+    appendMessage(userInput, "customer");
+    document.getElementById("userInput").value = "";
+
+    fetch("http://localhost:5000/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: userInput }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      appendMessage(data.response, "bot");
+    })
+    .catch(error => {
+      appendMessage("⚠️ Sorry, I couldn’t get that. Try again.", "bot");
+      console.error("Error:", error);
+    });
+  }
+
+  function checkEnter(event) {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  }
+</script>
+
+</body>
+</html>
